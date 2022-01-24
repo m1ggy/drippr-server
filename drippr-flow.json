@@ -1,0 +1,118 @@
+[
+    {
+        "id": "5df5443c7c1822d5",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "ce49176eab3122e9",
+        "type": "serial-port",
+        "serialport": "COM5",
+        "serialbaud": "9600",
+        "databits": "8",
+        "parity": "none",
+        "stopbits": "1",
+        "waitfor": "",
+        "dtr": "none",
+        "rts": "none",
+        "cts": "none",
+        "dsr": "none",
+        "newline": "\\n",
+        "bin": "false",
+        "out": "char",
+        "addchar": "",
+        "responsetimeout": "10000"
+    },
+    {
+        "id": "e598b120c264a3d1",
+        "type": "serial in",
+        "z": "5df5443c7c1822d5",
+        "name": "Arduino Mega",
+        "serial": "ce49176eab3122e9",
+        "x": 300,
+        "y": 960,
+        "wires": [
+            [
+                "3a1e940ecb52367c",
+                "18257c4ec1b431fa"
+            ]
+        ]
+    },
+    {
+        "id": "3a1e940ecb52367c",
+        "type": "debug",
+        "z": "5df5443c7c1822d5",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 690,
+        "y": 1000,
+        "wires": []
+    },
+    {
+        "id": "18257c4ec1b431fa",
+        "type": "function",
+        "z": "5df5443c7c1822d5",
+        "name": "",
+        "func": "const method = \"POST\";\n\nconst headers = {\n    \"content-type\":\"application/json\"\n}\n\nmsg.method = method;\nmsg.headers = headers;\nmsg.payload = {data:msg.payload, timestamp: Date.now()}\n\nreturn msg;\n\n\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 900,
+        "wires": [
+            [
+                "6af86731927da923"
+            ]
+        ]
+    },
+    {
+        "id": "6af86731927da923",
+        "type": "http request",
+        "z": "5df5443c7c1822d5",
+        "name": "",
+        "method": "use",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://audrey.loca.lt/reading",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "x": 720,
+        "y": 900,
+        "wires": [
+            [
+                "631ef6a7eefafa4e"
+            ]
+        ]
+    },
+    {
+        "id": "631ef6a7eefafa4e",
+        "type": "debug",
+        "z": "5df5443c7c1822d5",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 950,
+        "y": 900,
+        "wires": []
+    }
+]
