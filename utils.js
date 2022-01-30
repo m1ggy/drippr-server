@@ -26,6 +26,7 @@ async function refreshData(type) {
         case 'all':
             substrates = await fetchCollection('substrates');
             plans = await fetchCollection('plans');
+            crops = await fetchCollection('crops');
             break;
 
         default:
@@ -33,9 +34,14 @@ async function refreshData(type) {
     }
 }
 
+/**
+ * 
+ * @param {Date} date 
+ * @returns {String} cron expression
+ */
 function convertToCron(date) {
-    let mins = date.getMinutes();
-    let hours = date.getHours();
+    let mins = date.getUTCMinutes();
+    let hours = date.getUTCHours();
 
     return `${mins} ${hours} * * *`;
 }

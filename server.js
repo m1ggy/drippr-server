@@ -20,9 +20,11 @@ const port = process.env.PORT || 3000;
 app.use('/auth', authRoutes);
 app.use('/reading', readingRoutes);
 
-app.get('/refresh', async () => {
+app.get('/refresh', async (req, res) => {
+    console.info('Refresh Request. Refreshing ....')
     await refreshData('all');
     scheduler.scheduleAllPlans(global.plans);
+    res.status(200).send();
 });
 
 app.listen(port, async () => {
