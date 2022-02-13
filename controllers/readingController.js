@@ -14,7 +14,7 @@ const addReading = async (req, res) => {
                 .json({ message: 'Missing arguments', data, timestamp });
 
         const parsed = JSON.parse(data);
-        if (!parsed.id || !parsed.value)
+        if (!parsed.type)
             return res.status(404).json({ message: 'data is incomplete.' });
 
         if (parsed.type == 'trigger') {
