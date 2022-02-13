@@ -28,6 +28,10 @@ app.get('/refresh', async (req, res) => {
     res.status(200).send();
 });
 
+app.get('/new-token', async (req, res) => {
+    await notifs.init()
+})
+
 app.listen(port, async () => {
     //init
     init();
