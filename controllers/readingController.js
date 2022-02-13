@@ -20,7 +20,10 @@ const addReading = async (req, res) => {
         if (parsed.type == 'trigger') {
             res.status(200).json({ message: 'trigger success', status: 200 });
             return;
-        } else {
+        } else if (parsed.type == 'dht') {
+            const id = await add('dhtreadings', { ...parsed, timestamp });
+        }
+        else {
             console.info(
                 `New Reading ${new Date(timestamp).toLocaleString('en-US', {
                     timeStyle: 'medium',
