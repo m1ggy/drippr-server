@@ -40,17 +40,18 @@ const addReading = async (req, res) => {
 
 
             if (currentSubstrate && currentSubstrate.valveStatus == false) {
-                console.log({ currentSubstrate })
+
                 // get the plan for that plot
                 const [currentPlan] = global.plans.filter(
                     (plan) => plan.plotId == currentSubstrate.plotId
                 );
                 if (currentPlan) {
-                    console.log({ currentPlan })
+
 
                     if (currentPlan.type === 'SENSOR_BASED' && currentPlan.active == true) {
                         // if the parsed value is less than equals the minimum threshold of the current plan, start irrigating
                         if (currentPlan.threshold.min <= parsed.value) {
+
                             const wateringTime = scheduler.getWateringTime(
                                 currentPlan.id,
                                 moment().valueOf()
@@ -63,7 +64,7 @@ const addReading = async (req, res) => {
                                 substrateId: currentSubstrate.id
                             });
                             // stop the irrigation based on the computed watering time
-                            scheduler.schedule(convertToCron(wateringTime), 'irrigate', {
+                            scheduler.schedule(wateringTime, 'irrigate', {
                                 id: currentSubstrate.valveId,
                                 type: 'trigger',
                                 value: false,

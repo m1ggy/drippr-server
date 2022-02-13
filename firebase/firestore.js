@@ -73,11 +73,18 @@ const subscribe = async () => {
         notifs.setTokens(tokens);
     })
 
+    const unsub4 = db.collection('crops').onSnapshot(snapshot => {
+        const crops = [];
+        if (snapshot) {
+            snapshot.forEach(doc => {
+                crops.push({ id: doc.id, ...doc.data() })
+            })
+        }
 
+        global.crops = crops;
+    })
 
-
-
-    return () => { unsub(); unsub2(); unsub3() }
+    return () => { unsub(); unsub2(); unsub3(); unsub4() }
 }
 
 module.exports = { add, update, fetchCollection, subscribe };

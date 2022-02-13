@@ -149,8 +149,8 @@ class Scheduler {
      * @returns {Date} duration of irrigation
      */
     getWateringTime(id, time) {
-        const [cur] = plans.filter((x) => x.id === id);
-        const [cc] = crops.filter((x) => (x.id = cur.crop));
+        const [cur] = global.plans.filter((x) => x.id === id);
+        const [cc] = global.crops.filter((x) => (x.id = cur.crop));
 
         let wateringTime = null;
         let maxWater = null;
