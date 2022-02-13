@@ -1,6 +1,6 @@
 const { scheduler } = require('../classes/scheduler');
 const { add, update } = require('../firebase/firestore');
-const { postRequest, refreshData } = require('../utils');
+const { postRequest, refreshData, convertToCron } = require('../utils');
 const moment = require('moment');
 const addReading = async (req, res) => {
     try {
@@ -63,10 +63,11 @@ const addReading = async (req, res) => {
                                 substrateId: currentSubstrate.id
                             });
                             // stop the irrigation based on the computed watering time
-                            scheduler.schedule(wateringTime, 'irrigate', {
+                            scheduler.schedule(convertToCron(wateringTime), 'irrigate', {
                                 id: currentSubstrate.valveId,
                                 type: 'trigger',
                                 value: false,
+                                substrateId: currentSubstrate.id
                             });
                         }
                     }

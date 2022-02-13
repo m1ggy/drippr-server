@@ -26,7 +26,6 @@ class Scheduler {
         if (this.Agenda) {
             this.defineJob('irrigate', async (job, done) => {
                 const { data } = job.attrs;
-                console.log(job, data);
                 const response = await postRequest(process.env.RPI_URL, data);
                 if (response) {
                     console.log('Irrigate Data: ', response);
