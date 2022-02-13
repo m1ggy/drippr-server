@@ -3,6 +3,7 @@ const { postRequest, convertToCron } = require('../utils');
 const moment = require('moment');
 const { update } = require('../firebase/firestore');
 const { notifs } = require('./notifications');
+const { refreshData } = require('../utils')
 
 const CONST = {
     EMITTER_FLOWRATE: 8000,
@@ -29,17 +30,19 @@ class Scheduler {
                 const response = await postRequest(process.env.RPI_URL, data);
                 if (response) {
                     console.log('Irrigate Data: ', response);
-                    notifs.sendNotif({
-                        sound: 'default',
-                        body: `Valve ${data.id} is now ${
-                            data.value === false ? 'CLOSED' : 'OPEN'
-                        }`,
-                        title: 'Drippr Update',
-                        vibrate: true,
-                    });
-                    done();
+                    if (data.substrateId) {
+                        await update('substrates', data.substrateId, { valveStatus: data.value });
+                        await notifs.sendNotif({
+                            sound: 'default',
+                            body: `Valve ${data.id} is now ${data.value === false ? 'CLOSED' : 'OPEN'
+                                }`,
+                            title: 'Drippr Update',
+                            vibrate: true,
+                        });
+                        done();
+                    }
                 } else {
-                    notifs.sendNotif({
+                    await notifs.sendNotif({
                         sound: 'default',
                         body: `Valve ${data.id} failed to be updated. Please contact the developer.}`,
                         title: 'Drippr Update',
@@ -117,6 +120,7 @@ class Scheduler {
                                     id: substrate.valveId,
                                     type: 'trigger',
                                     value: true,
+                                    substrateId: substrate.id
                                 });
                                 this.every(
                                     convertToCron(stopTime),
@@ -125,6 +129,7 @@ class Scheduler {
                                         id: substrate.valveId,
                                         type: 'trigger',
                                         value: false,
+                                        substrateId: substrate.id
                                     }
                                 );
                             });

@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
-const {fetchCollection} = require('./firebase/firestore');
+const { fetchCollection } = require('./firebase/firestore');
 
 async function postRequest(url, data) {
     const res = await axios.post(url, data);
@@ -46,4 +46,4 @@ function convertToCron(date) {
     return `${mins} ${hours} * * *`;
 }
 
-module.exports = {sign, verify, postRequest, refreshData, convertToCron};
+module.exports = { sign, verify, postRequest, refreshData, convertToCron };

@@ -8,6 +8,7 @@ const { scheduler } = require('./classes/scheduler');
 const { refreshData } = require('./utils');
 const { init } = require('./globals');
 const { notifs } = require('./classes/notifications');
+const { subscribe } = require('./firebase/firestore');
 dotenv.config();
 
 const app = express();
@@ -32,19 +33,31 @@ app.get('/new-token', async (req, res) => {
     await notifs.init()
 })
 
-app.listen(port, async () => {
+app.listen(port, () => {
     //init
     init();
-    await refreshData('all');
-    scheduler.init();
-    scheduler.scheduleAllPlans(global.plans);
-    await notifs.init();
-    await notifs.sendNotif({
-        sound: 'default',
-        body: 'Dripper Server Started.',
-        title: 'Drippr Server Update',
-        vibrate: true,
-    });
+    subscribe().then(async unsub => {
+        process.on('beforeExit', () => {
+            unsub;
+        })
 
-    console.log(`server is listening on port ${port}`);
+        scheduler.init();
+        scheduler.scheduleAllPlans(global.plans);
+        console.log(`server is listening on port ${port}`);
+        if (!global.tokens) {
+            const inter = setInterval(async () => {
+
+                if (global.tokens) {
+                    await notifs.sendNotif({
+                        sound: 'default',
+                        body: 'Dripper Server Started.',
+                        title: 'Drippr Server Update',
+                        vibrate: true,
+                    });
+                    clearInterval(inter);
+                }
+
+            }, 5000);
+        }
+    })
 });

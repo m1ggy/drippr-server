@@ -1,6 +1,6 @@
 const { scheduler } = require('../classes/scheduler');
-const { add } = require('../firebase/firestore');
-const { postRequest } = require('../utils');
+const { add, update } = require('../firebase/firestore');
+const { postRequest, refreshData } = require('../utils');
 const moment = require('moment');
 const addReading = async (req, res) => {
     try {
@@ -38,13 +38,17 @@ const addReading = async (req, res) => {
                 substrate.sensors.includes(parsed.id)
             );
 
-            if (currentSubstrate) {
+
+            if (currentSubstrate && currentSubstrate.valveStatus == false) {
+                console.log({ currentSubstrate })
                 // get the plan for that plot
                 const [currentPlan] = global.plans.filter(
                     (plan) => plan.plotId == currentSubstrate.plotId
                 );
                 if (currentPlan) {
-                    if (currentPlan.type === 'SENSOR_BASED') {
+                    console.log({ currentPlan })
+
+                    if (currentPlan.type === 'SENSOR_BASED' && currentPlan.active == true) {
                         // if the parsed value is less than equals the minimum threshold of the current plan, start irrigating
                         if (currentPlan.threshold.min <= parsed.value) {
                             const wateringTime = scheduler.getWateringTime(
@@ -53,9 +57,10 @@ const addReading = async (req, res) => {
                             );
                             // start irrigating
                             scheduler.run('irrigate', {
-                                id: substrate.valveId,
+                                id: currentSubstrate.valveId,
                                 type: 'trigger',
                                 value: true,
+                                substrateId: currentSubstrate.id
                             });
                             // stop the irrigation based on the computed watering time
                             scheduler.schedule(wateringTime, 'irrigate', {
