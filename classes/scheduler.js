@@ -174,10 +174,10 @@ class Scheduler {
             }
             if (currentStage) {
                 if (cur.type === CONST.PLAN_TYPES.TIME_BASED) {
-                    maxWater = 12 * cc.cwrs[currentStage];
+                    maxWater = cc.cwrs[currentStage];
                     wateringTime = maxWater / CONST.EMITTER_FLOWRATE;
                 } else if (cur.type === CONST.PLAN_TYPES.SENSOR_BASED) {
-                    maxWater = 4 * cc.cwrs[currentStage];
+                    maxWater = cc.cwrs[currentStage];
                     wateringTime = maxWater / CONST.EMITTER_FLOWRATE;
                 }
             }
