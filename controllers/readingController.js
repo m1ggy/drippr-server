@@ -1,6 +1,5 @@
 const { scheduler } = require('../classes/scheduler');
-const { add, update } = require('../firebase/firestore');
-const { postRequest, refreshData, convertToCron } = require('../utils');
+const { add } = require('../firebase/firestore');
 const moment = require('moment');
 const addReading = async (req, res) => {
     try {
@@ -21,7 +20,8 @@ const addReading = async (req, res) => {
             res.status(200).json({ message: 'trigger success', status: 200 });
             return;
         } else if (parsed.type == 'dht') {
-            const id = await add('dhtreadings', { ...parsed, timestamp });
+            await add('dhtreadings', { ...parsed, timestamp });
+            res.status(200).json({ message: 'success', status: 200 });
         }
         else {
             console.info(
@@ -32,22 +32,19 @@ const addReading = async (req, res) => {
                 })}: { id: ${parsed.id}, value: ${parsed.value} }`
             );
             const id = await add('readings', { ...parsed, timestamp });
-
             // check if the new reading is below threshold, if it is, run irrigation
             const [currentSubstrate] = global.substrates.filter((substrate) =>
                 substrate.sensors.includes(parsed.id)
             );
-
-
+            console.log({currentSubstrate});
             if (currentSubstrate && currentSubstrate.valveStatus == false) {
-
                 // get the plan for that plot
                 const [currentPlan] = global.plans.filter(
                     (plan) => plan.plotId == currentSubstrate.plotId
                 );
+            console.log({currentPlan});
+
                 if (currentPlan) {
-
-
                     if (currentPlan.type === 'SENSOR_BASED' && currentPlan.active == true) {
                         // if the parsed value is less than equals the minimum threshold of the current plan, start irrigating
                         if (currentPlan.threshold.min <= parsed.value) {

@@ -30,7 +30,7 @@ app.get('/refresh', async (req, res) => {
 });
 
 app.get('/new-token', async (req, res) => {
-    await notifs.init()
+    res.status(200).send();
 })
 
 app.listen(port, () => {
