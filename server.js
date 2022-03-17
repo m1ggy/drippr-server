@@ -57,7 +57,7 @@ app.listen(port, () => {
     init();
     subscribe().then(async unsub => {
         process.on('beforeExit', () => {
-            unsub;
+            unsub();
         })
 
         scheduler.init();
