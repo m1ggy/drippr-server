@@ -1,6 +1,10 @@
 const { scheduler } = require('../classes/scheduler');
 const { add } = require('../firebase/firestore');
 const moment = require('moment');
+const { postRequest } = require('../utils');
+const { notifs } = require("../classes/notifications");
+const { update } = require("../firebase/firestore");
+
 const addReading = async (req, res) => {
     try {
         const {
@@ -53,20 +57,27 @@ const addReading = async (req, res) => {
                                 currentPlan.id,
                                 moment().valueOf()
                             );
-                            // start irrigating
-                            scheduler.run('irrigate', {
-                                id: currentSubstrate.valveId,
-                                type: 'trigger',
-                                value: true,
-                                substrateId: currentSubstrate.id
-                            });
+                                const data = {
+                                    id: currentSubstrate.valveId,
+                                    type: 'trigger',
+                                    value: true,
+                                    substrateId: currentSubstrate.id
+                                }
+                            const response = await postRequest(process.env.RPI_URL, data);
+
+                            if(response){
+                                await update('substrates', data.substrateId, { valveStatus: data.value });
+                                await notifs.sendNotif({
+                                    sound: 'default',
+                                    body: `Valve ${data.id} is now ${data.value === false ? 'CLOSED' : 'OPEN'
+                                        }`,
+                                    title: 'Drippr Update',
+                                    vibrate: true,
+                                });
+                                
                             // stop the irrigation based on the computed watering time
-                            scheduler.schedule(wateringTime, 'irrigate', {
-                                id: currentSubstrate.valveId,
-                                type: 'trigger',
-                                value: false,
-                                substrateId: currentSubstrate.id
-                            });
+                            scheduler.schedule(wateringTime, 'irrigate', {...data, value: false });
+                        }
                         }
                     }
                 }
