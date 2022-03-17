@@ -5,7 +5,7 @@ const dotenv = require('dotenv');
 const authRoutes = require('./routes/authRoutes');
 const readingRoutes = require('./routes/readingRoutes');
 const { scheduler } = require('./classes/scheduler');
-const { refreshData } = require('./utils');
+const { refreshData, postRequest } = require('./utils');
 const { init } = require('./globals');
 const { notifs } = require('./classes/notifications');
 const { subscribe } = require('./firebase/firestore');
@@ -32,6 +32,25 @@ app.get('/refresh', async (req, res) => {
 app.get('/new-token', async (req, res) => {
     res.status(200).send();
 })
+
+app.post("/debug/trigger", async (req, res) => {
+    const { id, value, type } = req.body;
+    console.log(req.body, process.env.RPI_URL);
+    const response = await postRequest(process.env.RPI_URL, {
+        id,
+        value,
+        type
+    });
+    console.log(response);
+
+    res.status(200).send("success");
+})
+
+app.get("/debug/status", (req, res) => {
+        const data = JSON.stringify(global.substrate);
+        res.status(200).json(data);
+})
+
 
 app.listen(port, () => {
     //init
