@@ -60,7 +60,7 @@ const addReading = async (req, res) => {
                     if (currentPlan.type === 'SENSOR_BASED' && currentPlan.active == true) {
                         // if the parsed value is less than equals the minimum threshold of the current plan, start irrigating
                         if (currentPlan.threshold.min <= parseInt(parsed.value)) {
-
+                            console.log("WATERING: ", parsed.id)
                             const wateringTime = scheduler.getWateringTime(
                                 currentPlan.id,
                                 moment().valueOf()
