@@ -28,7 +28,7 @@ const addReading = async (req, res) => {
             res.status(200).json({ message: 'success', status: 200 });
         }
         else {
-            console.info(
+            console.log(
                 `New Reading ${new Date(timestamp).toLocaleString('en-US', {
                     timeStyle: 'medium',
                     dateStyle: 'medium',
