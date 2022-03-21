@@ -38,15 +38,17 @@ const addReading = async (req, res) => {
             const id = await add('readings', { ...parsed, timestamp });
             // check if the new reading is below threshold, if it is, run irrigation
             const [currentSubstrate] = global.substrates.filter((substrate) =>
-                substrate.sensors.includes(parsed.id)
+                substrate.sensors.forEach(x => {
+                    if (x == parsed.id) return substrate
+                })
             );
-            console.log({currentSubstrate});
+            console.log({ currentSubstrate });
             if (currentSubstrate && currentSubstrate.valveStatus == false) {
                 // get the plan for that plot
                 const [currentPlan] = global.plans.filter(
                     (plan) => plan.plotId == currentSubstrate.plotId
                 );
-            console.log({currentPlan});
+                console.log({ currentPlan });
 
                 if (currentPlan) {
                     if (currentPlan.type === 'SENSOR_BASED' && currentPlan.active == true) {
@@ -57,15 +59,15 @@ const addReading = async (req, res) => {
                                 currentPlan.id,
                                 moment().valueOf()
                             );
-                                const data = {
-                                    id: currentSubstrate.valveId,
-                                    type: 'trigger',
-                                    value: true,
-                                    substrateId: currentSubstrate.id
-                                }
+                            const data = {
+                                id: currentSubstrate.valveId,
+                                type: 'trigger',
+                                value: true,
+                                substrateId: currentSubstrate.id
+                            }
                             const response = await postRequest(process.env.RPI_URL, data);
 
-                            if(response){
+                            if (response) {
                                 await update('substrates', data.substrateId, { valveStatus: data.value });
                                 await notifs.sendNotif({
                                     sound: 'default',
@@ -74,10 +76,10 @@ const addReading = async (req, res) => {
                                     title: 'Drippr Update',
                                     vibrate: true,
                                 });
-                                
-                            // stop the irrigation based on the computed watering time
-                            scheduler.schedule(wateringTime, 'irrigate', {...data, value: false });
-                        }
+
+                                // stop the irrigation based on the computed watering time
+                                scheduler.schedule(wateringTime, 'irrigate', { ...data, value: false });
+                            }
                         }
                     }
                 }
