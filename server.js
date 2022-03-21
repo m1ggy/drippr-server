@@ -47,8 +47,9 @@ app.post("/debug/trigger", async (req, res) => {
 })
 
 app.get("/debug/status", (req, res) => {
-        const data = JSON.stringify(global.substrate);
-        res.status(200).json(data);
+    console.log(global.substrates)
+    const data = JSON.stringify(global.substrates);
+    res.status(200).json(data);
 })
 
 
