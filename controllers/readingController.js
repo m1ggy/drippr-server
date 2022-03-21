@@ -36,12 +36,16 @@ const addReading = async (req, res) => {
                 })}: { id: ${parsed.id}, value: ${parsed.value} }`
             );
             const id = await add('readings', { ...parsed, timestamp });
+            console.log(global.substrates)
             // check if the new reading is below threshold, if it is, run irrigation
-            const [currentSubstrate] = global.substrates.filter((substrate) =>
+            const [currentSubstrate] = global.substrates.filter((substrate) => {
+                let found = null;
                 substrate.sensors.forEach(x => {
-                    if (x == parsed.id) return substrate
+                    if (x == parsed.id) found = substrate;
                 })
-            );
+
+                return found
+            });
             console.log({ currentSubstrate });
             if (currentSubstrate && currentSubstrate.valveStatus == false) {
                 // get the plan for that plot
