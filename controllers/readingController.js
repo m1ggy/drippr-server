@@ -41,7 +41,10 @@ const addReading = async (req, res) => {
             const [currentSubstrate] = global.substrates.filter((substrate) => {
                 let found = null;
                 substrate.sensors.forEach(x => {
-                    if (x == parsed.id) found = substrate;
+                    if (x.match(parsed.id)) {
+                        found = substrate;
+                        return;
+                    };
                 })
 
                 return found
