@@ -86,6 +86,27 @@ const addReading = async (req, res) => {
                                 // stop the irrigation based on the computed watering time
                                 scheduler.schedule(wateringTime, 'irrigate', { ...data, value: false });
                             }
+                        } else if (parseInt(currentPlan.threshold.max) <= parseInt(parsed.value)) {
+                            const data = {
+                                id: currentSubstrate.valveId,
+                                type: 'trigger',
+                                value: false,
+                                substrateId: currentSubstrate.id
+                            }
+                            const response = await postRequest(process.env.RPI_URL, data);
+                            if (response) {
+                                await update('substrates', data.substrateId, { valveStatus: data.value });
+                                await notifs.sendNotif({
+                                    sound: 'default',
+                                    body: `Valve ${data.id} is now ${data.value === false ? 'CLOSED' : 'OPEN'
+                                        }`,
+                                    title: 'Drippr Update',
+                                    vibrate: true,
+                                });
+
+                                // stop the irrigation based on the computed watering time
+                                scheduler.schedule(wateringTime, 'irrigate', { ...data, value: false });
+                            }
                         }
                     }
                 }

@@ -8,7 +8,7 @@ const { scheduler } = require('./classes/scheduler');
 const { refreshData, postRequest } = require('./utils');
 const { init } = require('./globals');
 const { notifs } = require('./classes/notifications');
-const { subscribe } = require('./firebase/firestore');
+const { subscribe, update } = require('./firebase/firestore');
 dotenv.config();
 
 const app = express();
@@ -36,14 +36,29 @@ app.get('/new-token', async (req, res) => {
 app.post("/debug/trigger", async (req, res) => {
     const { id, value, type } = req.body;
     console.log(req.body, process.env.RPI_URL);
-    const response = await postRequest(process.env.RPI_URL, {
+    await postRequest(process.env.RPI_URL, {
         id,
         value,
         type
     });
-    console.log(response);
 
-    res.status(200).send("success");
+    const [substrate] = global.substrates.filter(x => {
+        x.sensors.forEach(sensor => {
+            if (sensor == id) {
+                return x;
+            }
+        })
+    })
+    if (substrate) {
+        const success = await update("substrates", substrate.id, {
+            valveStatus: value
+        })
+        if (success) {
+            res.status(200).send("success");
+            return;
+        }
+    }
+    return res.status(404).send("failed to update DB");
 })
 
 app.get("/debug/status", (req, res) => {
