@@ -50,13 +50,13 @@ app.post("/debug/trigger", async (req, res) => {
         })
     })
     if (substrate) {
-        const success = await update("substrates", substrate.id, {
+        await update("substrates", substrate.id, {
             valveStatus: value
         })
-        if (success) {
-            res.status(200).send("success");
-            return;
-        }
+
+        res.status(200).send("success");
+        return;
+
     }
     return res.status(404).send("failed to update DB");
 })
