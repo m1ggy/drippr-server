@@ -43,11 +43,11 @@ app.post("/debug/trigger", async (req, res) => {
     });
 
     const [substrate] = global.substrates.filter(x => {
-        x.sensors.forEach(sensor => {
-            if (sensor == id) {
-                return x;
-            }
-        })
+
+        if (x.valveId == id) {
+            return x;
+        }
+
     })
     if (substrate) {
         await update("substrates", substrate.id, {
