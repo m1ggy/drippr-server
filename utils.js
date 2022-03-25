@@ -6,6 +6,7 @@ async function postRequest(url, data) {
     const res = await axios.post(url, data);
     return res.data;
 }
+
 function sign(payload) {
     if (JSON.stringify(payload) == '{}' || !payload) return null;
     return jwt.sign(payload, process.env.JWT_SECRET);
