@@ -37,6 +37,12 @@ const addReading = async (req, res) => {
             );
             const id = await add('readings', { ...parsed, timestamp });
             // check if the new reading is below threshold, if it is, run irrigation
+            const dissected = parsed.id.split("");
+
+            if(dissected[dissected.length-1] === "2"){
+                console.log("Sensor has 2. ignoring.... sensor: %s", parsed.id);
+                return;
+            }
             const [currentSubstrate] = global.substrates.filter((substrate) => {
                 let found = null;
                 substrate.sensors.forEach(x => {
