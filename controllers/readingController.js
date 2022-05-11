@@ -39,7 +39,7 @@ const addReading = async (req, res) => {
             // check if the new reading is below threshold, if it is, run irrigation
             const dissected = parsed.id.split("");
 
-            if(dissected[dissected.length-1] === "2"){
+            if (dissected[dissected.length - 1] === "2") {
                 console.log("Sensor has 2. ignoring.... sensor: %s", parsed.id);
                 return;
             }
@@ -60,10 +60,10 @@ const addReading = async (req, res) => {
                 const [currentPlan] = global.plans.filter(
                     (plan) => plan.plotId == currentSubstrate.plotId
                 );
-                console.log({ currentPlan });
 
                 if (currentPlan) {
                     if (currentPlan.active == true) {
+                        console.log({ currentPlan });
                         // if the parsed value is less than equals the minimum threshold of the current plan, start irrigating
                         if (parseInt(currentPlan.threshold.min) >= parseInt(parsed.value)) {
                             console.log("WATERING: ", parsed.id)
