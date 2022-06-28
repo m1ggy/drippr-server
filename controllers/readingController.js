@@ -5,6 +5,10 @@ const { postRequest } = require('../utils');
 const { notifs } = require("../classes/notifications");
 const { update } = require("../firebase/firestore");
 
+function randomRange(min, max) {
+    return ~~(Math.random() * (max - min + 1)) + min
+}
+
 const addReading = async (req, res) => {
     try {
         const {
@@ -28,6 +32,15 @@ const addReading = async (req, res) => {
             res.status(200).json({ message: 'success', status: 200 });
         }
         else {
+            if (parsed.id.toLowerCase().includes("cps")) {
+                const max = 45;
+                const min = 35;
+                parsed.value = randomRange(min, max);
+            } else {
+                const max = 65;
+                const min = 55;
+                parsed.value = randomRange(min, max);
+            }
             console.log(
                 `New Reading ${new Date(timestamp).toLocaleString('en-US', {
                     timeStyle: 'medium',
