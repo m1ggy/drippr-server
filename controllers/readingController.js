@@ -33,12 +33,12 @@ const addReading = async (req, res) => {
         }
         else {
             if (parsed.id.toLowerCase().includes("cps")) {
-                const max = 45;
+                const max = 25;
                 const min = 35;
                 parsed.value = randomRange(min, max);
             } else {
-                const max = 65;
-                const min = 55;
+                const max = 75;
+                const min = 65;
                 parsed.value = randomRange(min, max);
             }
             console.log(
