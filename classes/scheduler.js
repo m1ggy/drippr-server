@@ -150,14 +150,12 @@ class Scheduler {
      */
     getWateringTime(id, time) {
         const [cur] = global.plans.filter((x) => x.id === id);
-        const [cc] = global.crops.filter((x) => (x.id = cur.crop));
-
         let wateringTime = null;
         let maxWater = null;
-        if (cur && cc) {
+        if (cur) {
             const start = moment(cur.activatedAt);
             const current = moment();
-            const maxDays = Object.values(cc.stageDays).reduce(
+            const maxDays = Object.values(cur.stageValues.days).reduce(
                 (partialSum, a) => partialSum + a,
                 0
             );
@@ -165,21 +163,16 @@ class Scheduler {
 
             let currentStage = null;
             let max = 0;
-            for (const stage in cc.stageDays) {
-                max += cc.stageDays[stage];
+            for (const stage in cur.stageValues.days) {
+                max += cur.stageValues.days[stage];
                 if (max >= diff) {
                     currentStage = stage;
                     break;
                 }
             }
             if (currentStage) {
-                if (cur.type === CONST.PLAN_TYPES.TIME_BASED) {
-                    maxWater = cc.cwrs[currentStage];
-                    wateringTime = maxWater / CONST.EMITTER_FLOWRATE;
-                } else if (cur.type === CONST.PLAN_TYPES.SENSOR_BASED) {
-                    maxWater = cc.cwrs[currentStage];
-                    wateringTime = maxWater / CONST.EMITTER_FLOWRATE;
-                }
+                maxWater = cur.stageValues.waterReq[currentStage];
+                wateringTime = maxWater / CONST.EMITTER_FLOWRATE;
             }
         }
 
@@ -198,10 +191,9 @@ class Scheduler {
 
     isPlanActive(id) {
         const [cur] = plans.filter((x) => x.id === id);
-        const [cc] = crops.filter((x) => (x.id = cur.crop));
 
-        if (cur && cc) {
-            const maxDays = Object.values(cc.stageDays).reduce(
+        if (cur) {
+            const maxDays = Object.values(cur.stageValues.days).reduce(
                 (partialSum, a) => partialSum + a,
                 0
             );

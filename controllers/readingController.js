@@ -29,6 +29,27 @@ const addReading = async (req, res) => {
             return;
         } else if (parsed.type == 'dht') {
             await add('dhtreadings', { ...parsed, timestamp });
+
+            const plans = global.plans;
+
+            plans.forEach(plan => {
+                if (parsed.value < plan.planParams.minTemp) {
+                    notifs.sendNotif({
+                        sound: 'default',
+                        body: `Plan ${plan.name}'s temperature is below minimum threshold.`,
+                        title: 'Drippr Update',
+                        vibrate: true,
+                    });
+                } else if (parsed.value > plan.planParams.maxTemp) {
+                    notifs.sendNotif({
+                        sound: 'default',
+                        body: `Plan ${plan.name}'s temperature is above maximum threshold.`,
+                        title: 'Drippr Update',
+                        vibrate: true,
+                    });
+                }
+            })
+
             res.status(200).json({ message: 'success', status: 200 });
         }
         else {
@@ -78,7 +99,7 @@ const addReading = async (req, res) => {
                     if (currentPlan.active == true) {
                         console.log({ currentPlan });
                         // if the parsed value is less than equals the minimum threshold of the current plan, start irrigating
-                        if (parseInt(currentPlan.threshold.min) >= parseInt(parsed.value)) {
+                        if (parseInt(currentPlan.planParams.minThreshold) >= parseInt(parsed.value)) {
                             console.log("WATERING: ", parsed.id)
                             const wateringTime = scheduler.getWateringTime(
                                 currentPlan.id,
@@ -105,7 +126,7 @@ const addReading = async (req, res) => {
                                 // stop the irrigation based on the computed watering time
                                 scheduler.schedule(wateringTime, 'irrigate', { ...data, value: false });
                             }
-                        } else if (parseInt(currentPlan.threshold.max) <= parseInt(parsed.value)) {
+                        } else if (parseInt(currentPlan.planParams.maxThreshold) <= parseInt(parsed.value)) {
                             const data = {
                                 id: currentSubstrate.valveId,
                                 type: 'trigger',
