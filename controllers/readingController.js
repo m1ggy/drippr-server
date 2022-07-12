@@ -29,11 +29,14 @@ const addReading = async (req, res) => {
             res.status(200).json({ message: 'trigger success', status: 200 });
             return;
         } else if (parsed.type == 'dht') {
-            await add('dhtreadings', { ...parsed, ...{ temperature: randomRange(plan.planParams.minTemp, plan.planParams.maxTemp), humidity: randomRange(34, 40) }, timestamp });
+
 
             const plans = global.plans;
 
             plans.forEach(plan => {
+                if (plan.active) {
+                    add('dhtreadings', { ...parsed, ...{ temperature: randomRange(plan.planParams.minTemp, plan.planParams.maxTemp), humidity: randomRange(34, 40) }, timestamp });
+                }
                 if (plan.active && (parsed.value < plan.planParams.minTemp)) {
                     notifs.sendNotif({
                         sound: 'default',
