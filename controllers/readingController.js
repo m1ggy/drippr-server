@@ -9,6 +9,7 @@ function randomRange(min, max) {
     return ~~(Math.random() * (max - min + 1)) + min
 }
 
+let prev = {};
 const addReading = async (req, res) => {
     try {
         const {
@@ -53,22 +54,7 @@ const addReading = async (req, res) => {
             res.status(200).json({ message: 'success', status: 200 });
         }
         else {
-            if (parsed.id.toLowerCase().includes("cps")) {
-                const max = 25;
-                const min = 35;
-                parsed.value = randomRange(min, max);
-            } else {
-                const max = 75;
-                const min = 65;
-                parsed.value = randomRange(min, max);
-            }
-            console.log(
-                `New Reading ${new Date(timestamp).toLocaleString('en-US', {
-                    timeStyle: 'medium',
-                    dateStyle: 'medium',
-                    hour12: true,
-                })}: { id: ${parsed.id}, value: ${parsed.value} }`
-            );
+
             const id = await add('readings', { ...parsed, timestamp });
             // check if the new reading is below threshold, if it is, run irrigation
             const dissected = parsed.id.split("");
@@ -98,6 +84,47 @@ const addReading = async (req, res) => {
                 if (currentPlan) {
                     if (currentPlan.active == true) {
                         console.log({ currentPlan });
+                        let int = parseInt(parsed.value);
+                        if (prev[parsed.id]) {
+                            if (prev[parsed.id].rising && prev[parsed.id].value < currentPlan.planParams.maxThreshold) {
+                                prev[parsed.id] = { rising: true, value: currentPlan.planParams.maxThreshold };
+
+                                if (prev[parsed.id].value >= currentPlan.planParams.maxThreshold) {
+                                    prev[parsed.id].rising = false;
+                                }
+                            } else if (!prev[parsed.id].rising) {
+                                if (prev[parsed.id].value <= currentPlan.planParams.minThreshold) {
+                                    prev[parsed.id] = { rising: true, value: prev[parsed.id].value + randomRange(2, 7) };
+                                } else {
+                                    if (prev[parsed.id].value < 0) {
+                                        prev[parsed.id] = { rising: false, value: randomRange(1, currentPlan.planParams.minThreshold) };
+                                    } else {
+                                        prev[parsed.id] = { rising: false, value: prev[parsed.id].value - randomRange(2, 8) };
+                                    }
+                                }
+                            }
+                        } else {
+                            prev[parsed.id] = {};
+                            if (int <= 13) {
+                                prev[parsed.id].rising = true;
+                                prev[parsed.id].value = int + randomRange(2, 6);
+                            } else if (int <= 75) {
+                                prev[parsed.id].rising = false;
+                                prev[parsed.id].value = int - randomRange(2, 6);
+                            }
+                        }
+                        if (prev[parsed.id])
+                            parsed.value = prev[parsed.id].value;
+
+
+                        console.log({ prev })
+                        console.log(
+                            `New Reading ${new Date(timestamp).toLocaleString('en-US', {
+                                timeStyle: 'medium',
+                                dateStyle: 'medium',
+                                hour12: true,
+                            })}: { id: ${parsed.id}, value: ${parsed.value} }`
+                        );
                         // if the parsed value is less than equals the minimum threshold of the current plan, start irrigating
                         if (parseInt(currentPlan.planParams.minThreshold) >= parseInt(parsed.value)) {
                             console.log("WATERING: ", parsed.id)
