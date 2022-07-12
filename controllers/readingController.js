@@ -35,7 +35,7 @@ const addReading = async (req, res) => {
 
             plans.forEach(plan => {
                 if (plan.active) {
-                    add('dhtreadings', { ...parsed, ...{ temperature: randomRange(plan.planParams.minTemp, plan.planParams.maxTemp), humidity: randomRange(34, 40) }, timestamp });
+                    add('dhtreadings', { ...parsed, temperature: randomRange(plan.planParams.minTemp, plan.planParams.maxTemp), humidity: randomRange(34, 40), timestamp: moment().valueOf(), location: "inside" });
                 }
                 if (plan.active && (parsed.value < plan.planParams.minTemp)) {
                     notifs.sendNotif({
@@ -58,7 +58,7 @@ const addReading = async (req, res) => {
         }
         else {
 
-            const id = await add('readings', { ...parsed, timestamp });
+            const id = "TEST";
             // check if the new reading is below threshold, if it is, run irrigation
             const dissected = parsed.id.split("");
 
@@ -78,7 +78,7 @@ const addReading = async (req, res) => {
                 return found
             });
             console.log({ currentSubstrate, parsed });
-            if (currentSubstrate && currentSubstrate.valveStatus == false) {
+            if (currentSubstrate) {
                 // get the plan for that plot
                 const [currentPlan] = global.plans.filter(
                     (plan) => plan.plotId == currentSubstrate.plotId
@@ -86,7 +86,6 @@ const addReading = async (req, res) => {
 
                 if (currentPlan) {
                     if (currentPlan.active == true) {
-                        console.log({ currentPlan });
                         let int = parseInt(parsed.value);
                         if (prev[parsed.id]) {
                             if (prev[parsed.id].rising && prev[parsed.id].value < currentPlan.planParams.maxThreshold) {
@@ -128,6 +127,7 @@ const addReading = async (req, res) => {
                                 hour12: true,
                             })}: { id: ${parsed.id}, value: ${parsed.value} }`
                         );
+                        await add('readings', { ...parsed, timestamp: moment().valueOf() });
                         // if the parsed value is less than equals the minimum threshold of the current plan, start irrigating
                         if (parseInt(currentPlan.planParams.minThreshold) >= parseInt(parsed.value)) {
                             console.log("WATERING: ", parsed.id)
@@ -141,21 +141,23 @@ const addReading = async (req, res) => {
                                 value: true,
                                 substrateId: currentSubstrate.id
                             }
-                            const response = await postRequest(process.env.RPI_URL, data);
+                            // const response = await postRequest(process.env.RPI_URL, data);
 
-                            if (response) {
-                                await update('substrates', data.substrateId, { valveStatus: data.value });
-                                await notifs.sendNotif({
-                                    sound: 'default',
-                                    body: `Valve ${data.id} is now ${data.value === false ? 'CLOSED' : 'OPEN'
-                                        }`,
-                                    title: 'Drippr Update',
-                                    vibrate: true,
-                                });
+                            // if (response) {
+                            await update('substrates', data.substrateId, { valveStatus: data.value });
 
-                                // stop the irrigation based on the computed watering time
-                                scheduler.schedule(wateringTime, 'irrigate', { ...data, value: false });
-                            }
+                            console.log({ data })
+                            await notifs.sendNotif({
+                                sound: 'default',
+                                body: `Valve ${data.id} is now ${data.value === false ? 'CLOSED' : 'OPEN'
+                                    }`,
+                                title: 'Drippr Update',
+                                vibrate: true,
+                            });
+
+                            // stop the irrigation based on the computed watering time
+                            // scheduler.schedule(wateringTime, 'irrigate', { ...data, value: false });
+                            // }
                         } else if (parseInt(currentPlan.planParams.maxThreshold) <= parseInt(parsed.value)) {
                             const data = {
                                 id: currentSubstrate.valveId,
@@ -163,20 +165,20 @@ const addReading = async (req, res) => {
                                 value: false,
                                 substrateId: currentSubstrate.id
                             }
-                            const response = await postRequest(process.env.RPI_URL, data);
-                            if (response) {
-                                await update('substrates', data.substrateId, { valveStatus: data.value });
-                                await notifs.sendNotif({
-                                    sound: 'default',
-                                    body: `Valve ${data.id} is now ${data.value === false ? 'CLOSED' : 'OPEN'
-                                        }`,
-                                    title: 'Drippr Update',
-                                    vibrate: true,
-                                });
+                            // const response = await postRequest(process.env.RPI_URL, data);
+                            // if (response) {
+                            await update('substrates', data.substrateId, { valveStatus: data.value });
+                            await notifs.sendNotif({
+                                sound: 'default',
+                                body: `Valve ${data.id} is now ${data.value === false ? 'CLOSED' : 'OPEN'
+                                    }`,
+                                title: 'Drippr Update',
+                                vibrate: true,
+                            });
 
-                                // stop the irrigation based on the computed watering time
-                                scheduler.schedule(wateringTime, 'irrigate', { ...data, value: false });
-                            }
+                            // stop the irrigation based on the computed watering time
+                            // scheduler.schedule(wateringTime, 'irrigate', { ...data, value: false });
+                            // }
                         }
                     }
                 }

@@ -150,12 +150,15 @@ class Scheduler {
      */
     getWateringTime(id, time) {
         const [cur] = global.plans.filter((x) => x.id === id);
+        console.log(cur)
         let wateringTime = null;
         let maxWater = null;
         if (cur) {
             const start = moment(cur.activatedAt);
             const current = moment();
-            const maxDays = Object.values(cur.stageValues.days).reduce(
+
+            const days = Object.values(cur.stageValues).map(x => x.days)
+            const maxDays = days.reduce(
                 (partialSum, a) => partialSum + a,
                 0
             );
